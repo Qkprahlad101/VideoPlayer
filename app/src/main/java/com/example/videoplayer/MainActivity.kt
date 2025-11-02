@@ -23,6 +23,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -34,8 +35,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.media3.common.MediaItem
+import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.ui.PlayerView
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -46,12 +51,17 @@ import com.example.videoplayer.data.VideoItem
 import com.example.videoplayer.ui.theme.VIdeoPlayerTheme
 import com.example.videoplayer.viewmodel.VideoListState
 import com.example.videoplayer.viewmodel.VideoListViewModel
+import java.net.URLEncoder
+import java.nio.charset.StandardCharsets
 
 // 1. Define Navigation Routes for type safety
 sealed class Screen(val route: String) {
     object FolderList : Screen("folderList")
     object VideoList : Screen("videoList/{folderId}") {
         fun createRoute(folderId: Long) = "videoList/$folderId"
+    }
+    object Player : Screen("player/{videoUri}") {
+        fun createRoute(videoUri: String) = "player/$videoUri"
     }
 }
 
@@ -68,7 +78,6 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun AppContent() {
-    // 2. Set up the NavController and NavHost
     val navController = rememberNavController()
 
     Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
@@ -80,21 +89,33 @@ fun AppContent() {
             )
 
             NavHost(navController = navController, startDestination = Screen.FolderList.route) {
-                // Route for the main folder list screen
                 composable(Screen.FolderList.route) {
                     PermissionGatedContent { folderId ->
-                        // Navigate when a folder is clicked
                         navController.navigate(Screen.VideoList.createRoute(folderId))
                     }
                 }
-                // Route for the screen showing videos inside a folder
                 composable(
                     route = Screen.VideoList.route,
                     arguments = listOf(navArgument("folderId") { type = NavType.LongType })
                 ) { backStackEntry ->
                     val folderId = backStackEntry.arguments?.getLong("folderId")
                     if (folderId != null) {
-                        VideosInFolderScreen(folderId = folderId)
+                        VideosInFolderScreen(
+                            folderId = folderId,
+                            onVideoClick = { videoUri ->
+                                val encodedUri = URLEncoder.encode(videoUri, StandardCharsets.UTF_8.toString())
+                                navController.navigate(Screen.Player.createRoute(encodedUri))
+                            }
+                        )
+                    }
+                }
+                composable(
+                    route = Screen.Player.route,
+                    arguments = listOf(navArgument("videoUri") { type = NavType.StringType })
+                ) { backStackEntry ->
+                    val videoUri = backStackEntry.arguments?.getString("videoUri")
+                    if (videoUri != null) {
+                        PlayerScreen(videoUri = videoUri)
                     }
                 }
             }
@@ -102,9 +123,37 @@ fun AppContent() {
     }
 }
 
+@Composable
+fun PlayerScreen(videoUri: String) {
+    val context = LocalContext.current
+    val exoPlayer = remember {
+        ExoPlayer.Builder(context).build().apply {
+            val mediaItem = MediaItem.fromUri(videoUri)
+            setMediaItem(mediaItem)
+            prepare()
+            playWhenReady = true
+        }
+    }
+
+    DisposableEffect(Unit) {
+        onDispose {
+            exoPlayer.release()
+        }
+    }
+
+    AndroidView(
+        modifier = Modifier.fillMaxSize(),
+        factory = {
+            PlayerView(it).apply {
+                player = exoPlayer
+            }
+        }
+    )
+}
+
 
 @Composable
-fun PermissionGatedContent(onFolderClick: (Long) -> Unit) { // Now accepts a lambda
+fun PermissionGatedContent(onFolderClick: (Long) -> Unit) {
     val context = LocalContext.current
     val permission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
         Manifest.permission.READ_MEDIA_VIDEO
@@ -128,7 +177,6 @@ fun PermissionGatedContent(onFolderClick: (Long) -> Unit) { // Now accepts a lam
     if (hasPermission) {
         val viewModel: VideoListViewModel = viewModel()
         val uiState by viewModel.uiState.collectAsState()
-        // Pass the click handler down
         VideoListScreen(uiState = uiState, onFolderClick = onFolderClick)
     } else {
         PermissionRationaleUI(onPermissionRequested = { launcher.launch(permission) })
@@ -136,7 +184,7 @@ fun PermissionGatedContent(onFolderClick: (Long) -> Unit) { // Now accepts a lam
 }
 
 @Composable
-fun VideoListScreen(uiState: VideoListState, onFolderClick: (Long) -> Unit) { // Accepts click handler
+fun VideoListScreen(uiState: VideoListState, onFolderClick: (Long) -> Unit) {
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         when {
             uiState.isLoading -> {
@@ -151,7 +199,6 @@ fun VideoListScreen(uiState: VideoListState, onFolderClick: (Long) -> Unit) { //
             else -> {
                 LazyColumn(modifier = Modifier.fillMaxSize()) {
                     items(uiState.videoFolders) { folder ->
-                        // Use the passed-in click handler
                         VideoFolderItem(folder = folder, onClick = { onFolderClick(folder.id) })
                     }
                 }
@@ -160,27 +207,28 @@ fun VideoListScreen(uiState: VideoListState, onFolderClick: (Long) -> Unit) { //
     }
 }
 
-// 3. Create the new screen to show videos in a folder
 @Composable
-fun VideosInFolderScreen(folderId: Long, viewModel: VideoListViewModel = viewModel()) {
+fun VideosInFolderScreen(
+    folderId: Long,
+    viewModel: VideoListViewModel = viewModel(),
+    onVideoClick: (String) -> Unit
+) {
     val uiState by viewModel.uiState.collectAsState()
     val folder = uiState.videoFolders.find { it.id == folderId }
 
     if (folder != null) {
         LazyColumn(modifier = Modifier.fillMaxSize()) {
             items(folder.videos) { video ->
-                VideoItemView(video = video, onClick = { /* TODO: Play video */ })
+                VideoItemView(video = video, onClick = { onVideoClick(video.uri.toString()) })
             }
         }
     } else {
-        // Handle case where folder is not found (e.g., after a process death)
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             Text("Folder not found.")
         }
     }
 }
 
-// New composable for a single video item
 @Composable
 fun VideoItemView(video: VideoItem, onClick: () -> Unit) {
     Column(
@@ -190,7 +238,6 @@ fun VideoItemView(video: VideoItem, onClick: () -> Unit) {
             .padding(16.dp)
     ) {
         Text(text = video.name, style = MaterialTheme.typography.titleMedium)
-        // You can add more details here, like video duration or size
     }
 }
 
@@ -200,7 +247,7 @@ fun VideoFolderItem(folder: VideoFolder, onClick: () -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(onClick = onClick) // The click is handled here
+            .clickable(onClick = onClick)
             .padding(16.dp)
     ) {
         Text(text = folder.name, style = MaterialTheme.typography.titleMedium)
