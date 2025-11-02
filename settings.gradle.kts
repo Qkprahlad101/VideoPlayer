@@ -21,3 +21,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "VIdeoPlayer"
 include(":app")
+include(":feature_play_from_url")

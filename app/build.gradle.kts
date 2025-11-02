@@ -63,6 +63,8 @@ dependencies {
     // Coil for image loading (video thumbnails)
     implementation("io.coil-kt:coil-compose:2.7.0")
 
+    implementation(project(":feature_play_from_url"))
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

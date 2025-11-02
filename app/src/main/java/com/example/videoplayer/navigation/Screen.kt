@@ -4,7 +4,7 @@ import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
 
 sealed class Screen(val route: String) {
-    object FolderList : Screen("folderList")
+    object Home : Screen("home") // The new main screen with tabs
     object VideoList : Screen("videoList/{folderId}") {
         fun createRoute(folderId: Long) = "videoList/$folderId"
     }
