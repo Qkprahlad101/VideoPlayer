@@ -79,6 +79,9 @@ fun AppNavHost() {
                         folderId = folderId,
                         onVideoClick = {
                             navController.navigate(Screen.Player.createRoute(it))
+                        },
+                        onBackClick = {
+                            navController.navigateUp()
                         }
                     )
                 }
