@@ -24,11 +24,8 @@ import androidx.compose.ui.unit.dp
  */
 @Composable
 fun PlayFromUrlScreen(onPlayClick: (String) -> Unit) {
-    // A sample working video URL for demonstration and easy testing.
-    val sampleUrl = "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"
 
-    // Remember the state of the text field.
-    var url by remember { mutableStateOf(sampleUrl) }
+    var url by remember { mutableStateOf("") }
 
     Column(
         modifier = Modifier
