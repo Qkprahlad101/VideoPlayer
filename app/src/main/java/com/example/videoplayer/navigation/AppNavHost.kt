@@ -34,10 +34,9 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.example.videoplayer.Utils.CURRENT_SCREEN
-import com.example.videoplayer.Utils.HOME
 import com.example.videoplayer.feature_play_from_url.PlayFromUrlScreen
 import com.example.videoplayer.ui.permissions.PermissionGatedContent
 import com.example.videoplayer.ui.player.PlayerScreen
@@ -49,36 +48,48 @@ import java.nio.charset.StandardCharsets
 @Composable
 fun AppNavHost() {
     val navController = rememberNavController()
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentRoute = navBackStackEntry?.destination?.route
+
+    val title = when {
+        currentRoute?.startsWith(Screen.VideoList.route.substringBefore("/{")) == true -> "Videos"
+        else -> "Video Player"
+    }
+    val showBackButton = navController.previousBackStackEntry != null
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         topBar = {
-            TopAppBar(
-                title = {
-                    Box(modifier = Modifier.fillMaxWidth().height(56.dp)) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back",
-                            tint = Color.Gray,
-                            modifier = Modifier.align(Alignment.CenterStart).clickable(onClick = { navController.navigateUp() })
-                        )
-                        Text(
-                            text = if(CURRENT_SCREEN.value == HOME) "Video Player" else "Videos",
-                            style = TextStyle(
-                                color = Color.Black,
-                                textAlign = TextAlign.Center,
-                                fontSize = 20.sp,
-                                fontWeight = FontWeight.Bold
-                            ),
-                            modifier = Modifier.align(Alignment.Center)
-                        )
-                        Spacer(modifier = Modifier.align(Alignment.CenterEnd).size(24.dp))
-                    }
+            if (currentRoute?.startsWith(Screen.Player.route.substringBefore("/{")) != true) {
+                TopAppBar(
+                    title = {
+                        Box(modifier = Modifier.fillMaxWidth().height(56.dp)) {
+                            if (showBackButton) {
+                                Icon(
+                                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                    contentDescription = "Back",
+                                    tint = Color.Gray,
+                                    modifier = Modifier.align(Alignment.CenterStart).clickable(onClick = { navController.navigateUp() })
+                                )
+                            }
+                            Text(
+                                text = title,
+                                style = TextStyle(
+                                    color = Color.Black,
+                                    textAlign = TextAlign.Center,
+                                    fontSize = 20.sp,
+                                    fontWeight = FontWeight.Bold
+                                ),
+                                modifier = Modifier.align(Alignment.Center)
+                            )
+                            Spacer(modifier = Modifier.align(Alignment.CenterEnd).size(24.dp))
+                        }
 
-                },
-                modifier = Modifier,
-                scrollBehavior = null
-            )
+                    },
+                    modifier = Modifier,
+                    scrollBehavior = null
+                )
+            }
         },
 
         ) { innerPadding ->

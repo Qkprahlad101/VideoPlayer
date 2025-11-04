@@ -36,8 +36,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.videoplayer.Utils.CURRENT_SCREEN
-import com.example.videoplayer.Utils.VIDEO_LIST
 import com.example.videoplayer.data.VideoItem
 import com.example.videoplayer.viewmodel.VideoListViewModel
 
@@ -51,7 +49,6 @@ fun VideosInFolderScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val folder = uiState.videoFolders.find { it.id == folderId }
-    CURRENT_SCREEN.value = VIDEO_LIST
     if (folder != null) {
         LazyColumn(
             modifier = Modifier.fillMaxSize()
