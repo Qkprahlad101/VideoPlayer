@@ -63,6 +63,10 @@ dependencies {
     // Coil for image loading (video thumbnails)
     implementation("io.coil-kt:coil-compose:2.7.0")
 
+    // Koin for Dependency Injection
+    implementation("io.insert-koin:koin-android:3.5.0")
+    implementation("io.insert-koin:koin-androidx-compose:3.5.0")
+
     implementation(project(":feature_play_from_url"))
 
     testImplementation(libs.junit)

@@ -6,6 +6,10 @@ import androidx.activity.compose.setContent
 import com.example.videoplayer.navigation.AppNavHost
 import com.example.videoplayer.ui.theme.VIdeoPlayerTheme
 
+/**
+ * The main entry point of the application.
+ * This activity hosts the Jetpack Compose navigation component.
+ */
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

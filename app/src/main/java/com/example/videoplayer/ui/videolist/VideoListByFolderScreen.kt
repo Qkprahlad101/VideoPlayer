@@ -36,16 +36,19 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.videoplayer.R
-import com.example.videoplayer.data.VideoItem
-import com.example.videoplayer.viewmodel.VideoListViewModel
+import com.example.videoplayer.domain.model.VideoItem
+import com.example.videoplayer.presentation.videolist.VideoListViewModel
+import org.koin.androidx.compose.koinViewModel
 
+/**
+ * A screen that displays a list of videos from a specific folder.
+ */
 @ExperimentalMaterial3Api
 @Composable
 fun VideosInFolderScreen(
     folderId: Long,
-    viewModel: VideoListViewModel = viewModel(),
+    viewModel: VideoListViewModel = koinViewModel(),
     onVideoClick: (String) -> Unit,
     onBackClick: () -> Unit
 ) {
