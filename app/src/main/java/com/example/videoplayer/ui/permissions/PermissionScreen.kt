@@ -15,9 +15,11 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
+import com.example.videoplayer.R
 import com.example.videoplayer.ui.folderlist.FolderListScreen
 
 @Composable
@@ -57,12 +59,12 @@ fun PermissionRationaleUI(onPermissionRequested: () -> Unit) {
         verticalArrangement = Arrangement.Center
     ) {
         Text(
-            text = "This app needs to read video files from your device to display them.",
+            text = stringResource(R.string.permission_rationale),
             textAlign = TextAlign.Center,
             modifier = Modifier.padding(16.dp)
         )
         Button(onClick = onPermissionRequested) {
-            Text("Request Permission")
+            Text(stringResource(R.string.request_permission))
         }
     }
 }

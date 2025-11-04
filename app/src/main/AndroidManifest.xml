@@ -4,7 +4,7 @@
 
     <!-- Permissions for reading video files -->
     <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" /> <!--for reading video files from external storage-->
 
     <!-- Add Internet permission for streaming video from a URL -->
     <uses-permission android:name="android.permission.INTERNET" />

@@ -2,10 +2,13 @@ package com.example.videoplayer.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-val Purple80 = Color(0xFFD0BCFF)
-val PurpleGrey80 = Color(0xFFCCC2DC)
-val Pink80 = Color(0xFFEFB8C8)
+// Soothing Dark Palette
+val DarkBackground = Color(0xFF1A1C1E)
+val TextOnDark = Color(0xFFE2E2E6)
+val HighlightBlue = Color(0xFFA8C7FA)
+val Orange = Color(0xFFFFAC5D) // Vibrant Orange for titles
 
-val Purple40 = Color(0xFF6650a4)
-val PurpleGrey40 = Color(0xFF625b71)
-val Pink40 = Color(0xFF7D5260)
+// Soothing Light Palette
+val LightBackground = Color(0xFFFDFBFF)
+val TextOnLight = Color(0xFF1A1C1E)
+val PrimaryBlue = Color(0xFF005AC1)
