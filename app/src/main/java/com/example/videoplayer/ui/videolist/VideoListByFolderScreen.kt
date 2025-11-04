@@ -1,6 +1,5 @@
 package com.example.videoplayer.ui.videolist
 
-import android.R.attr.contentDescription
 import android.content.ContentUris
 import android.graphics.BitmapFactory
 import android.provider.MediaStore
@@ -17,7 +16,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -28,10 +26,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarScrollBehavior
-import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.ComposableInferredTarget
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -43,14 +38,12 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import coil.compose.AsyncImage
 import com.example.videoplayer.data.VideoItem
 import com.example.videoplayer.viewmodel.VideoListViewModel
 
@@ -65,45 +58,21 @@ fun VideosInFolderScreen(
     val uiState by viewModel.uiState.collectAsState()
     val folder = uiState.videoFolders.find { it.id == folderId }
 
-    Scaffold(modifier = Modifier.fillMaxSize(),
-        topBar = {TopAppBar(
-            title = {Text(
-                text = folder?.name?: "Videos",
-                style = TextStyle(
-                    color = Color.Black,
-                    textAlign = TextAlign.Justify,
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold
-                )
-            )},
-            modifier = Modifier,
-            scrollBehavior = null
-        )}) { innerPadding ->
-
-        Column(modifier = Modifier.padding(innerPadding)) {
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                contentDescription = "Back",
-                modifier = Modifier.clickable(onClick = onBackClick).padding(8.dp).size(24.dp)
-            )
-
-            if (folder != null) {
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize()
-                ) {
-                    items(folder.videos) { video ->
-                        VideoItemView(video = video, onClick = { onVideoClick(video.uri.toString()) })
-                    }
-                }
-            } else {
-                // Handle case where folder is not found (e.g., after a process death)
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text("Folder not found.")
-                }
+    if (folder != null) {
+        LazyColumn(
+            modifier = Modifier.fillMaxSize()
+        ) {
+            items(folder.videos) { video ->
+                VideoItemView(video = video, onClick = { onVideoClick(video.uri.toString()) })
             }
+        }
+    } else {
+        // Handle case where folder is not found (e.g., after a process death)
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            Text("Folder not found.")
         }
     }
 }

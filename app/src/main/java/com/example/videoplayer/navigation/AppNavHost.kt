@@ -9,13 +9,18 @@ import androidx.compose.material3.PrimaryTabRow
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -33,7 +38,24 @@ import java.nio.charset.StandardCharsets
 fun AppNavHost() {
     val navController = rememberNavController()
 
-    Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+    Scaffold(
+        modifier = Modifier.fillMaxSize(),
+        topBar = {
+            TopAppBar(
+                title = {
+                    Text(
+                        text = "Videos",
+                        style = TextStyle(
+                            color = Color.Black,
+                            textAlign = TextAlign.Justify,
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    )},
+                modifier = Modifier,
+                scrollBehavior = null
+            )}
+    ) { innerPadding ->
         NavHost(
             navController = navController,
             startDestination = Screen.Home.route,
