@@ -1,0 +1,54 @@
+package com.example.videoplayer.feature_play_from_url
+
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Button
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+
+/**
+ * A screen that allows the user to input a direct video URL and play it.
+ * @param onPlayClick A lambda that is invoked with the video URL when the user clicks the play button.
+ */
+@Composable
+fun PlayFromUrlScreen(onPlayClick: (String) -> Unit) {
+    // A sample working video URL for demonstration and easy testing.
+    val sampleUrl = "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"
+
+    // Remember the state of the text field.
+    var url by remember { mutableStateOf(sampleUrl) }
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        OutlinedTextField(
+            value = url,
+            onValueChange = { url = it },
+            label = { Text("Direct video URL (.mp4, .m3u8, etc.)") },
+            modifier = Modifier.fillMaxWidth()
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+        Button(
+            onClick = { onPlayClick(url) },
+            enabled = url.isNotBlank()
+        ) {
+            Text("Play Video")
+        }
+    }
+}
