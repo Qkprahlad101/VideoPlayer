@@ -4,6 +4,9 @@ import android.app.Activity
 import android.content.pm.ActivityInfo
 import androidx.activity.compose.BackHandler
 import androidx.annotation.OptIn
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.Box
@@ -12,7 +15,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -72,6 +74,9 @@ fun PlayerScreen(videoUri: String, navController: NavController) {
     var isSeeking by remember { mutableStateOf(false) }
     var seekTime by remember { mutableLongStateOf(0L) }
     var initialSeekPosition by remember { mutableLongStateOf(0L) }
+
+    // State for player controls visibility
+    var areControlsVisible by remember { mutableStateOf(false) }
 
 
     val bandwidthMeter = remember { DefaultBandwidthMeter.Builder(context).build() }
@@ -195,22 +200,34 @@ fun PlayerScreen(videoUri: String, navController: NavController) {
     ) {
         AndroidView(
             modifier = Modifier.fillMaxSize(),
-            factory = { PlayerView(it).apply {
-                player = exoPlayer// Disable default controller for a cleaner custom UI
-            } }
+            factory = {
+                PlayerView(it).apply {
+                    player = exoPlayer
+                    // Listen to the visibility of the default controls
+                    setControllerVisibilityListener(PlayerView.ControllerVisibilityListener { visibility ->
+                        areControlsVisible = visibility == PlayerView.VISIBLE
+                    })
+                }
+            }
         )
 
-        IconButton(
-            modifier = Modifier
-                .align(Alignment.TopStart)
-                .padding(16.dp),
-            onClick = { navigateBack() }
+        AnimatedVisibility(
+            visible = areControlsVisible || isSeeking,
+            enter = fadeIn(),
+            exit = fadeOut(),
+            modifier = Modifier.align(Alignment.TopStart)
         ) {
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                contentDescription = "Back",
-                tint = Color.White
-            )
+            IconButton(
+                modifier = Modifier
+                    .padding(16.dp),
+                onClick = { navigateBack() }
+            ) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = "Back",
+                    tint = Color.White
+                )
+            }
         }
 
         Box(
