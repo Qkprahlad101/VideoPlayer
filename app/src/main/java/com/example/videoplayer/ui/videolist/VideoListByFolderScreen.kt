@@ -33,9 +33,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.videoplayer.R
 import com.example.videoplayer.data.VideoItem
 import com.example.videoplayer.viewmodel.VideoListViewModel
 
@@ -63,7 +65,7 @@ fun VideosInFolderScreen(
             modifier = Modifier.fillMaxSize(),
             contentAlignment = Alignment.Center
         ) {
-            Text("Folder not found.")
+            Text(stringResource(R.string.folder_not_found))
         }
     }
 }
@@ -113,7 +115,7 @@ fun VideoItemView(
         ) {
             Icon(
                 imageVector = Icons.Default.Info,
-                contentDescription = "Video thumbnail",
+                contentDescription = stringResource(R.string.video_thumbnail),
                 tint = Color.Gray
             )
         }

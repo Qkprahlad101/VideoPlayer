@@ -26,6 +26,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -37,6 +38,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.example.videoplayer.R
 import com.example.videoplayer.feature_play_from_url.PlayFromUrlScreen
 import com.example.videoplayer.ui.permissions.PermissionGatedContent
 import com.example.videoplayer.ui.player.PlayerScreen
@@ -52,8 +54,8 @@ fun AppNavHost() {
     val currentRoute = navBackStackEntry?.destination?.route
 
     val title = when {
-        currentRoute?.startsWith(Screen.VideoList.route.substringBefore("/{")) == true -> "Videos"
-        else -> "Video Player"
+        currentRoute?.startsWith(Screen.VideoList.route.substringBefore("/{")) == true -> stringResource(R.string.videos)
+        else -> stringResource(R.string.video_player)
     }
     val showBackButton = navController.previousBackStackEntry != null
 
@@ -67,7 +69,7 @@ fun AppNavHost() {
                             if (showBackButton) {
                                 Icon(
                                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                    contentDescription = "Back",
+                                    contentDescription = stringResource(R.string.back),
                                     tint = Color.Gray,
                                     modifier = Modifier.align(Alignment.CenterStart).clickable(onClick = { navController.navigateUp() })
                                 )
@@ -101,7 +103,7 @@ fun AppNavHost() {
         ) {
             composable(Screen.Home.route) {
                 var tabState by remember { mutableIntStateOf(0) }
-                val titles = listOf("Local Files", "Play from URL")
+                val titles = listOf(stringResource(R.string.local_files), stringResource(R.string.play_from_url))
 
                 Column {
                     PrimaryTabRow(selectedTabIndex = tabState) {
