@@ -25,7 +25,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.example.videoplayer.R
 import com.example.videoplayer.domain.model.VideoFolder
 import com.example.videoplayer.presentation.videolist.VideoListViewModel
 import org.koin.androidx.compose.koinViewModel
@@ -48,7 +50,7 @@ fun FolderListScreen(onFolderClick: (Long) -> Unit) {
             }
 
             uiState.videoFolders.isEmpty() -> {
-                Text(text = "No video folders found.")
+                Text(text = stringResource(R.string.no_folder_found))
             }
 
             else -> {
@@ -67,7 +69,7 @@ fun VideoFolderItem(folder: VideoFolder, onClick: () -> Unit) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color.Gray.copy(alpha = 0.2f))
+            .background(Color.Gray.copy(alpha = 0.1f))
             .clip(RoundedCornerShape(8.dp))
     ) {
         Row(
