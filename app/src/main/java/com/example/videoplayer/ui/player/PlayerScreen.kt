@@ -3,7 +3,9 @@ package com.example.videoplayer.ui.player
 import android.app.Activity
 import android.content.pm.ActivityInfo
 import androidx.activity.compose.BackHandler
+import androidx.annotation.OptIn
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -11,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.CircularProgressIndicator
@@ -21,12 +24,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.unit.dp
@@ -38,34 +43,39 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.common.VideoSize
+import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.upstream.DefaultBandwidthMeter
 import androidx.media3.ui.PlayerView
 import androidx.navigation.NavController
+import java.util.concurrent.TimeUnit
 import kotlin.math.ln
+import kotlin.math.nextUp
 import kotlin.math.pow
 
 /**
  * A full-screen video player that handles playback, UI states (buffering, errors),
- * and orientation changes.
+ * orientation changes, and swipe-to-seek gestures.
  *
  * @param videoUri The URI of the video to be played (can be a local file path or a network URL).
  * @param navController The navigation controller used to handle back navigation.
  */
+@OptIn(UnstableApi::class)
 @Composable
 fun PlayerScreen(videoUri: String, navController: NavController) {
     val context = LocalContext.current
 
-    // State to hold the current player status (e.g., Buffering, Playing, Error).
     var playerState by remember { mutableStateOf<PlayerState>(PlayerState.Idle) }
-
-    // State to track if we've already set the orientation. This prevents a rotation loop.
     var isOrientationSet by remember { mutableStateOf(false) }
 
-    // A BandwidthMeter is used to estimate network bandwidth and report it during buffering.
+    // State for swipe-to-seek gesture
+    var isSeeking by remember { mutableStateOf(false) }
+    var seekTime by remember { mutableLongStateOf(0L) }
+    var initialSeekPosition by remember { mutableLongStateOf(0L) }
+
+
     val bandwidthMeter = remember { DefaultBandwidthMeter.Builder(context).build() }
 
-    // Create and remember the ExoPlayer instance.
     val exoPlayer = remember {
         ExoPlayer.Builder(context)
             .setBandwidthMeter(bandwidthMeter)
@@ -74,15 +84,13 @@ fun PlayerScreen(videoUri: String, navController: NavController) {
                 val mediaItem = MediaItem.fromUri(videoUri)
                 setMediaItem(mediaItem)
                 prepare()
-                playWhenReady = true // Start playback automatically.
+                playWhenReady = true
             }
     }
 
-    // Get the current window and view to control system UI (full-screen) and orientation.
     val view = LocalView.current
     val window = (view.context as Activity).window
 
-    // These effects are for managing the full-screen mode and orientation.
     fun hideSystemUi() {
         WindowCompat.setDecorFitsSystemWindows(window, false)
         WindowInsetsControllerCompat(window, view).let {
@@ -100,68 +108,55 @@ fun PlayerScreen(videoUri: String, navController: NavController) {
         (view.context as Activity).requestedOrientation = orientation
     }
 
-    // We use LaunchedEffect to enter full-screen mode once.
     LaunchedEffect(Unit) {
         hideSystemUi()
     }
 
-    // This is the core logic for listening to player events and updating the UI state.
     DisposableEffect(exoPlayer) {
         val listener = object : Player.Listener {
             override fun onPlaybackStateChanged(playbackState: Int) {
-                // Update our custom PlayerState based on ExoPlayer's state.
                 playerState = when (playbackState) {
                     Player.STATE_BUFFERING -> {
-                        // Get the current network speed from the bandwidth meter.
                         val speed = bandwidthMeter.bitrateEstimate
                         PlayerState.Buffering(formatBitrate(speed))
                     }
                     Player.STATE_READY -> PlayerState.Playing
                     Player.STATE_ENDED -> PlayerState.Ended
                     Player.STATE_IDLE -> PlayerState.Idle
-                    else -> playerState // Keep the current state if it's not one of the above
+                    else -> playerState
                 }
             }
 
             override fun onPlayerError(error: PlaybackException) {
-                // If an error occurs, update the state to show an error message.
                 playerState = PlayerState.Error(error.message ?: "An unknown error occurred")
             }
 
             override fun onVideoSizeChanged(videoSize: VideoSize) {
-                // Auto-rotate the screen based on video dimensions, but only do it once
-                // to prevent a rotation loop if the player state is unstable.
                 if (!isOrientationSet && videoSize.width > 0 && videoSize.height > 0) {
                     if (videoSize.width > videoSize.height) {
                         setOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE)
                     } else {
                         setOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT)
                     }
-                    isOrientationSet = true // Mark that we've set the orientation.
+                    isOrientationSet = true
                 }
             }
         }
 
         exoPlayer.addListener(listener)
 
-        // This onDispose block is crucial for cleanup.
         onDispose {
-            // It is critical to release the player to free up memory, network, and hardware codecs.
             exoPlayer.removeListener(listener)
             exoPlayer.release()
         }
     }
-    
-    // Centralized function to handle all back navigation logic.
+
     fun navigateBack() {
-        // First, restore the system UI and reset the orientation.
         showSystemUi()
         setOrientation(ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED)
-        // Then, navigate back.
         navController.popBackStack()
     }
 
-    // Handle the system back button press.
     BackHandler {
         navigateBack()
     }
@@ -169,20 +164,47 @@ fun PlayerScreen(videoUri: String, navController: NavController) {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.Black) // Black background for the player
+            .background(Color.Black)
+            .pointerInput(Unit) {
+                detectHorizontalDragGestures(
+                    onHorizontalDrag = { change, dragAmount ->
+                        if (playerState is PlayerState.Playing || playerState is PlayerState.Paused) {
+                            change.consume()
+                            // Map drag distance to seek time. A larger multiplier makes seeking faster.
+                            val seekMultiplier = 200L
+                            val seekDelta = dragAmount.nextUp().toLong() * seekMultiplier
+                            val newPosition = (initialSeekPosition + seekDelta).coerceIn(0L, exoPlayer.duration)
+                            seekTime = newPosition
+                            isSeeking = true
+                        }
+                    },
+                    onDragStart = {
+                        if (playerState is PlayerState.Playing || playerState is PlayerState.Paused) {
+                            initialSeekPosition = exoPlayer.currentPosition
+                            isSeeking = true
+                        }
+                    },
+                    onDragEnd = {
+                        if (isSeeking) {
+                            exoPlayer.seekTo(seekTime)
+                            isSeeking = false
+                        }
+                    }
+                )
+            }
     ) {
-        // The AndroidView composable is used to embed the traditional Android PlayerView.
         AndroidView(
             modifier = Modifier.fillMaxSize(),
-            factory = { PlayerView(it).apply { player = exoPlayer } }
+            factory = { PlayerView(it).apply {
+                player = exoPlayer// Disable default controller for a cleaner custom UI
+            } }
         )
 
-        // A simple back button placed at the top-left corner.
         IconButton(
             modifier = Modifier
                 .align(Alignment.TopStart)
                 .padding(16.dp),
-            onClick = { navigateBack() } // Use the centralized back navigation function
+            onClick = { navigateBack() }
         ) {
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
@@ -191,12 +213,11 @@ fun PlayerScreen(videoUri: String, navController: NavController) {
             )
         }
 
-        // This Box is for overlaying UI elements like buffering indicators or error messages.
         Box(
             modifier = Modifier.fillMaxSize(),
             contentAlignment = Alignment.Center
         ) {
-            // Reactively show UI based on the player's state.
+            // Show buffering/error states
             when (val state = playerState) {
                 is PlayerState.Buffering -> {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -208,20 +229,46 @@ fun PlayerScreen(videoUri: String, navController: NavController) {
                 is PlayerState.Error -> {
                     Text(text = state.message, color = Color.White, modifier = Modifier.padding(16.dp))
                 }
-                // For other states (Playing, Paused, etc.), show nothing in the overlay.
                 else -> {}
+            }
+
+            // Show seek indicator UI when dragging
+            if (isSeeking) {
+                Box(
+                    modifier = Modifier
+                        .background(Color.Black.copy(alpha = 0.6f), RoundedCornerShape(16.dp))
+                        .padding(horizontal = 24.dp, vertical = 16.dp)
+                ) {
+                    val duration = exoPlayer.duration.coerceAtLeast(0)
+                    Text(
+                        text = "${formatDuration(seekTime)} / ${formatDuration(duration)}",
+                        color = Color.White
+                    )
+                }
             }
         }
     }
 }
 
-/**
- * A helper function to format a bitrate in bits per second into a human-readable string (e.g., "1.2 Mbps").
- */
 private fun formatBitrate(bitsPerSecond: Long): String {
     if (bitsPerSecond < 1000) return "0 Kbps"
     val unit = 1000.0
     val exp = (ln(bitsPerSecond.toDouble()) / ln(unit)).toInt()
     val pre = "KMGTPE"[exp - 1]
     return String.format("%.1f %cbps", bitsPerSecond / unit.pow(exp.toDouble()), pre)
+}
+
+/**
+ * Formats a duration in milliseconds into a human-readable string (e.g., "01:23" or "1:05:10").
+ */
+private fun formatDuration(ms: Long): String {
+    val totalSeconds = TimeUnit.MILLISECONDS.toSeconds(ms)
+    val hours = TimeUnit.SECONDS.toHours(totalSeconds)
+    val minutes = TimeUnit.SECONDS.toMinutes(totalSeconds) % 60
+    val seconds = totalSeconds % 60
+    return if (hours > 0) {
+        String.format("%d:%02d:%02d", hours, minutes, seconds)
+    } else {
+        String.format("%02d:%02d", minutes, seconds)
+    }
 }
