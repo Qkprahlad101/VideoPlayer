@@ -7,6 +7,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -19,11 +21,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 
 /**
- * A screen that allows the user to input a direct video URL and play it.
+ * A screen that allows the user to input a video URL and play it.
  * @param onPlayClick A lambda that is invoked with the video URL when the user clicks the play button.
+ * @param isLoading Whether the screen is currently in a loading state.
+ * @param errorMessage An optional error message to display.
  */
 @Composable
-fun PlayFromUrlScreen(onPlayClick: (String) -> Unit) {
+fun PlayFromUrlScreen(
+    onPlayClick: (String) -> Unit,
+    isLoading: Boolean,
+    errorMessage: String?
+) {
 
     var url by remember { mutableStateOf("") }
 
@@ -37,15 +45,32 @@ fun PlayFromUrlScreen(onPlayClick: (String) -> Unit) {
         OutlinedTextField(
             value = url,
             onValueChange = { url = it },
-            label = { Text("Direct video URL (.mp4, .m3u8, etc.)") },
-            modifier = Modifier.fillMaxWidth()
+            label = { Text("Video URL (YouTube, Dailymotion, etc.)") },
+            modifier = Modifier.fillMaxWidth(),
+            isError = errorMessage != null,
+            enabled = !isLoading
         )
+        errorMessage?.let {
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = it,
+                color = MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.bodySmall,
+                modifier = Modifier.fillMaxWidth()
+            )
+        }
+
         Spacer(modifier = Modifier.height(16.dp))
-        Button(
-            onClick = { onPlayClick(url) },
-            enabled = url.isNotBlank()
-        ) {
-            Text("Play Video")
+
+        if (isLoading) {
+            CircularProgressIndicator()
+        } else {
+            Button(
+                onClick = { onPlayClick(url) },
+                enabled = url.isNotBlank()
+            ) {
+                Text("Get Video and Play")
+            }
         }
     }
 }

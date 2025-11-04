@@ -50,6 +50,12 @@ dependencies {
     implementation(composeBom)
     androidTestImplementation(composeBom)
 
+    // YoutubeDL for video extraction
+    val youtubedlAndroid = "0.18.0"
+    implementation("io.github.junkfood02.youtubedl-android:library:${youtubedlAndroid}")
+    implementation("io.github.junkfood02.youtubedl-android:ffmpeg:${youtubedlAndroid}")
+    implementation("io.github.junkfood02.youtubedl-android:aria2c:${youtubedlAndroid}")
+
     implementation(libs.androidx.ui)
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.material3)

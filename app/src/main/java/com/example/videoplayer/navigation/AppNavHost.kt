@@ -20,6 +20,7 @@ import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
@@ -41,9 +42,12 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.videoplayer.R
 import com.example.videoplayer.feature_play_from_url.PlayFromUrlScreen
+import com.example.videoplayer.ui.features.playfromurl.PlayFromUrlUiState
+import com.example.videoplayer.ui.features.playfromurl.PlayFromUrlViewModel
 import com.example.videoplayer.ui.permissions.PermissionGatedContent
 import com.example.videoplayer.ui.player.PlayerScreen
 import com.example.videoplayer.ui.videolist.VideosInFolderScreen
+import org.koin.androidx.compose.koinViewModel
 import java.net.URLDecoder
 import java.nio.charset.StandardCharsets
 
@@ -126,9 +130,27 @@ fun AppNavHost() {
 
                         1 -> {
                             // Show Play from URL Content
-                            PlayFromUrlScreen { videoUrl ->
-                                navController.navigate(Screen.Player.createRoute(videoUrl))
+                            val viewModel: PlayFromUrlViewModel = koinViewModel()
+                            val uiState = viewModel.uiState
+
+                            LaunchedEffect(uiState) {
+                                if (uiState is PlayFromUrlUiState.Success) {
+                                    navController.navigate(Screen.Player.createRoute(uiState.streamUrl))
+                                    viewModel.onNavigationToPlayerComplete()
+                                }
                             }
+
+                            // Determine the state for the UI
+                            val isLoading = uiState is PlayFromUrlUiState.Loading
+                            val errorMessage = (uiState as? PlayFromUrlUiState.Error)?.message
+
+                            PlayFromUrlScreen(
+                                onPlayClick = { videoUrl ->
+                                    viewModel.extractVideoUrl(videoUrl)
+                                },
+                                isLoading = isLoading,
+                                errorMessage = errorMessage
+                            )
                         }
                     }
                 }

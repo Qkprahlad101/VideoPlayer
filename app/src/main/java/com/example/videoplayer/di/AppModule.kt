@@ -4,6 +4,7 @@ import com.example.videoplayer.data.VideoRepositoryImpl
 import com.example.videoplayer.domain.repository.VideoRepository
 import com.example.videoplayer.domain.use_case.GetVideosUseCase
 import com.example.videoplayer.presentation.videolist.VideoListViewModel
+import com.example.videoplayer.ui.features.playfromurl.PlayFromUrlViewModel
 import org.koin.androidx.viewmodel.dsl.viewModel
 import org.koin.dsl.module
 
@@ -29,5 +30,9 @@ val appModule = module {
     // The 'viewModel' keyword links its lifecycle to a Composable screen or an Activity/Fragment.
     viewModel {
         VideoListViewModel(get())
+    }
+
+    viewModel {
+        PlayFromUrlViewModel()
     }
 }

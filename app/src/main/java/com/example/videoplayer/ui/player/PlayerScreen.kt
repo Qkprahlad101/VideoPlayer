@@ -46,7 +46,9 @@ import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.common.VideoSize
 import androidx.media3.common.util.UnstableApi
+import androidx.media3.datasource.DefaultHttpDataSource
 import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.exoplayer.upstream.DefaultBandwidthMeter
 import androidx.media3.ui.PlayerView
 import androidx.navigation.NavController
@@ -77,13 +79,18 @@ fun PlayerScreen(videoUri: String, navController: NavController) {
 
     // State for player controls visibility
     var areControlsVisible by remember { mutableStateOf(false) }
-
-
     val bandwidthMeter = remember { DefaultBandwidthMeter.Builder(context).build() }
 
     val exoPlayer = remember {
+        // Set a custom User-Agent to avoid HTTP 403 Forbidden errors.
+        val httpDataSourceFactory = DefaultHttpDataSource.Factory()
+            .setUserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36")
+
+        val mediaSourceFactory = DefaultMediaSourceFactory(context)
+            .setDataSourceFactory(httpDataSourceFactory)
+
         ExoPlayer.Builder(context)
-            .setBandwidthMeter(bandwidthMeter)
+            .setMediaSourceFactory(mediaSourceFactory)
             .build()
             .apply {
                 val mediaItem = MediaItem.fromUri(videoUri)

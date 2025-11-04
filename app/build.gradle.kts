@@ -18,6 +18,15 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    splits {
+        abi {
+            isEnable = true
+            reset()
+            include("x86", "x86_64", "armeabi-v7a", "arm64-v8a")
+            isUniversalApk = false
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = false
@@ -52,6 +61,7 @@ dependencies {
 
     // Media3 for video playback
     implementation("androidx.media3:media3-exoplayer:1.4.0")
+    implementation("androidx.media3:media3-exoplayer-hls:1.4.0")
     implementation("androidx.media3:media3-ui:1.4.0")
 
     // Navigation Compose
@@ -66,6 +76,13 @@ dependencies {
     // Koin for Dependency Injection
     implementation("io.insert-koin:koin-android:3.5.0")
     implementation("io.insert-koin:koin-androidx-compose:3.5.0")
+
+    // YoutubeDL for video extraction (updated fork)
+    val youtubedlAndroid = "0.18.0"
+    implementation("io.github.junkfood02.youtubedl-android:library:${youtubedlAndroid}")
+    implementation("io.github.junkfood02.youtubedl-android:ffmpeg:${youtubedlAndroid}")
+    implementation("io.github.junkfood02.youtubedl-android:aria2c:${youtubedlAndroid}")
+
 
     implementation(project(":feature_play_from_url"))
 
