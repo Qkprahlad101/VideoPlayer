@@ -18,6 +18,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.videoplayer.Utils.CURRENT_SCREEN
+import com.example.videoplayer.Utils.HOME
 import com.example.videoplayer.data.VideoFolder
 import com.example.videoplayer.viewmodel.VideoListViewModel
 
@@ -25,7 +27,7 @@ import com.example.videoplayer.viewmodel.VideoListViewModel
 fun FolderListScreen(onFolderClick: (Long) -> Unit) {
     val viewModel: VideoListViewModel = viewModel()
     val uiState by viewModel.uiState.collectAsState()
-
+    CURRENT_SCREEN.value = HOME
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         when {
             uiState.isLoading -> {

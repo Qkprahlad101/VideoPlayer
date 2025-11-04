@@ -3,19 +3,16 @@ package com.example.videoplayer.navigation
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.PrimaryTabRow
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Tab
@@ -39,6 +36,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.example.videoplayer.Utils.CURRENT_SCREEN
+import com.example.videoplayer.Utils.HOME
 import com.example.videoplayer.feature_play_from_url.PlayFromUrlScreen
 import com.example.videoplayer.ui.permissions.PermissionGatedContent
 import com.example.videoplayer.ui.player.PlayerScreen
@@ -64,7 +63,7 @@ fun AppNavHost() {
                             modifier = Modifier.align(Alignment.CenterStart).clickable(onClick = { navController.navigateUp() })
                         )
                         Text(
-                            text = "Videos",
+                            text = if(CURRENT_SCREEN.value == HOME) "Video Player" else "Videos",
                             style = TextStyle(
                                 color = Color.Black,
                                 textAlign = TextAlign.Center,
