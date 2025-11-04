@@ -84,7 +84,7 @@ fun VideoFolderItem(folder: VideoFolder, onClick: () -> Unit) {
                 modifier = Modifier
                     .fillMaxWidth()
                     .clickable(onClick = onClick)
-                    .padding(16.dp)
+                    .padding(8.dp)
             ) {
 
                 Text(text = folder.name, style = MaterialTheme.typography.titleMedium)
