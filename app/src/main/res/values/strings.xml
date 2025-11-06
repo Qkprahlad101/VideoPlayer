@@ -6,6 +6,7 @@
     <string name="local_files">Local Files</string>
     <string name="play_from_url">Play from URL</string>
     <string name="folder_not_found">Folder not found.</string>
+    <string name="no_folder_found">No Folders not found.</string>
     <string name="video_thumbnail">Video thumbnail</string>
     <string name="permission_rationale">This app needs to read video files from your device to display them.</string>
     <string name="request_permission">Request Permission</string>
